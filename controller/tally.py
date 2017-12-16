@@ -23,8 +23,10 @@ class Tally:
     nodes = []
     try:
       while True:
-        node_id, address= self.sock.recvfrom(1024)
-        dbg("Found node " + node_id.decode() + " at " + address[0])
+        message, address= self.sock.recvfrom(1024)
+        node_id, channel = message.decode().split(",")
+        node_id = hex(int(node_id))[2:].upper()
+        dbg("Found node " + node_id + " on channel " + channel + " at " + address[0])
         nodes.append((node_id.decode(), address[0]))
     except Exception as e:
       pass

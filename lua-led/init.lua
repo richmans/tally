@@ -1,7 +1,9 @@
 config_file="config.lua"
+channel = 0
 
 function init()
   print("Mark423 Tally system starting...")
+  read_config()
   init_led()
   wifi_setup()
 end
@@ -28,15 +30,6 @@ function wifi_setup()
   );
 end
 
-function toggle_led() 
-  if ledstate == gpio.LOW then
-    ledstate = gpio.HIGH
-  else
-    ledstate = gpio.LOW
-  end
-  gpio.write(0, ledstate)
-end
-
 function udp_listen()
   udpSocket = net.createUDPSocket()
   udpSocket:listen(5004, wifi.sta.getip())
@@ -47,13 +40,30 @@ end
 
 function parse_packet(s, data, port, ip)
   command = string.byte(data)
-  
   if command == 1 then
-    message = node.chipid()
+    message = string.format("%s,%d", node.chipid(), channel)
     s:send(port, ip, message)
   elseif command == 2 then
-    toggle_led()
+    input = string.byte(data, 2)
+    mask = bit.bit(channel)
+    if bit.band(mask, input) > 0 then
+      ledstate = gpio.HIGH
+      print("LED on!")
+    else
+      ledstate = gpio.LOW
+      print("LED off!")
+    end
+    gpio.write(0, ledstate)
   end
 end
 
+function read_config()
+  dofile(config_file)
+end
+
+function write_config()
+  file.open(config_file, "w")
+  file.write(string.format("channel=%d", channel))
+  file.close()
+end
 init()

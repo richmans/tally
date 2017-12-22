@@ -110,7 +110,7 @@ end
 function parse_packet(s, data, port, ip)
   command = string.byte(data)
   if command == 1 then
-    -- channel 255 means controller
+    -- channel 255 means sensor
     message = string.format(string.char(4) .. "%s,%d", node.chipid(), 255)
     s:send(port, ip, message)
   end

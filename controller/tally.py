@@ -61,7 +61,7 @@ class Tally:
         node_id, channel = message[1:].decode().split(",")
         node_id = hex(int(node_id))[2:].upper()
         channel = int(channel)
-        if channel == 255: channel = "CONTROLLER"
+        if channel == 255: channel = "SENSOR"
         dbg("PONG from {}, id {}, channel {}".format(address[0], node_id, channel))
       elif command == 2:
         chanstate = ord(message[1:2])

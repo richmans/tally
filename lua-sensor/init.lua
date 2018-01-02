@@ -4,15 +4,17 @@
 config_file="config.lua"
 -- nodemcu pins https://github.com/nodemcu/nodemcu-firmware/blob/master/docs/en/modules/gpio.md 
 -- layout of the pins on the board: google lolin esp8266
+-- i messed up the pin wirings, the pinmap is adjusted to map each pin to the right
+-- channel
 pinmap = {}
-pinmap[1]=0  --d1
-pinmap[2]=1   --d2
-pinmap[3]=2   --d3
-pinmap[4]=3   --d4
-pinmap[5]=4  --d5
-pinmap[6]=5  --d6
-pinmap[7]=6  --d7
-pinmap[8]=7  --d8
+pinmap[1]=4  --d1
+pinmap[2]=5   --d2
+pinmap[3]=7   --d3
+pinmap[4]=6   --d4
+pinmap[5]=0  --d5
+pinmap[6]=1  --d6
+pinmap[7]=2  --d7
+pinmap[8]=3  --d8
 
 pinstate = 0
 ready = false

@@ -1,6 +1,7 @@
 import argparse
 import socket
 import struct
+import traceback
 NODE_PORT=5004
 def dbg(msg):
   print(msg)
@@ -24,15 +25,18 @@ class Tally:
     try:
       while True:
         message, address= self.sock.recvfrom(1024)
-        if message[0] != 4: continue
+        
+        if message[0] != 4: 
+          print("Malformed response {}".format(message[0]))
+          continue
         node_id, channel = message[1:].decode().split(",")
         node_id = hex(int(node_id))[2:].upper()
         channel = int(channel)
         if channel == 255: 
-          dbg("Found node " + node_id + " CONTROLLER at " + address[0])
+          dbg("Found node " + node_id + " SENSOR at " + address[0])
         else:
-          dbg("Found node " + node_id + " on channel " + channel + " at " + address[0])
-        nodes.append((node_id.decode(), address[0]))
+          dbg("Found node " + node_id + " on channel " + str(channel) + " at " + address[0])
+        nodes.append((node_id, address[0]))
     except Exception as e:
       pass
     return nodes

@@ -1,8 +1,16 @@
+--
+--        Mark423 TALLY LED
+--
 config_file="config.lua"
 channel = 0
 
 function init()
   print("Mark423 Tally system starting...")
+   if m423_running == true then
+    print("M423 is already running, aborting. Reboot the node to run updated software")
+    return
+  end
+  m423_running = true
   read_config()
   init_led()
   wifi_setup()
@@ -41,7 +49,7 @@ end
 function parse_packet(s, data, port, ip)
   command = string.byte(data)
   if command == 1 then
-    message = string.format("%s,%d", node.chipid(), channel)
+    message = string.format(string.char(4) .. "%s,%d", node.chipid(), channel)
     s:send(port, ip, message)
   elseif command == 2 then
     input = string.byte(data, 2)

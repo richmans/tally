@@ -25,7 +25,7 @@ function wifi_setup()
   print("Starting wifi setup")
   enduser_setup.start(
     function()
-      print("Connected to wifi as:" .. wifi.sta.getip())
+      --print("Connected to wifi as:" .. wifi.sta.getip())
       local sta_config = wifi.sta.getconfig(true)
       sta_config.save = true
       sta_config.got_ip_cb=udp_listen
@@ -56,10 +56,10 @@ function parse_packet(s, data, port, ip)
     mask = bit.bit(channel)
     if bit.band(mask, input) > 0 then
       ledstate = gpio.HIGH
-      print("LED on!")
+      --print("LED on!")
     else
       ledstate = gpio.LOW
-      print("LED off!")
+      --print("LED off!")
     end
     gpio.write(0, ledstate)
   end

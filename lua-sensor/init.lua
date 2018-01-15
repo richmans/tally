@@ -87,7 +87,6 @@ function wifi_setup()
   print("Starting wifi setup")
   enduser_setup.start(
     function()
-      print("Connected to wifi as:" .. wifi.sta.getip())
       local sta_config = wifi.sta.getconfig(true)
       sta_config.save = true
       sta_config.got_ip_cb=udp_listen

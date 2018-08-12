@@ -53,6 +53,11 @@ class Tally:
       if (2**i) & chanstate > 0:
         chans.append(i)
     return chans
+  
+  def set_channel(self, node, channel):
+    message = "\x03{},{}".format(node, channel)
+    dbg("Broadcasting command 3")
+    self.sock.sendto(message.encode(), ("<broadcast>", NODE_PORT))
     
   def listen(self):
     self.sock.bind(("0.0.0.0", NODE_PORT))
@@ -72,6 +77,9 @@ class Tally:
         chans = self.get_chans(chanstate)
         chans = ",".join(map(lambda x: str(x), chans))
         dbg("ACTIVATE from {} channels {}".format(address[0], chans))
+      elif command == 3:
+        node_id, channel = message[1:].decode().split(",")
+        dbg("PROGRAM for {} to channel {}".format(node_id, channel))
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Commands for the m423 tally system')
@@ -80,6 +88,9 @@ if __name__ == "__main__":
   activation_parser = subparsers.add_parser("activate")
   listen_parser = subparsers.add_parser("listen")
   activation_parser.add_argument('-c', type=int, required=True)
+  channel_parser = subparsers.add_parser("channel")
+  channel_parser.add_argument('-c', type=int, required=True)
+  channel_parser.add_argument('-n', type=str, required=True)
   args = parser.parse_args()
   t = Tally()
   if args.command == "find":
@@ -88,5 +99,7 @@ if __name__ == "__main__":
     t.send_activation(args.c)
   elif args.command == "listen":
     t.listen()
+  elif args.command == "channel":
+    t.set_channel(args.n, args.c)
   else:
     parser.print_usage()

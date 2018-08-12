@@ -37,10 +37,9 @@ end
 -- will make sure that the current state is broadcast every
 -- 500ms.
 function heartbeat()
-  if not ready then
-    return
+  if ready then
+    send_pinstate()
   end
-  send_pinstate()
 end
   
 function start_heartbeat()

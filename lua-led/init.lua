@@ -106,7 +106,12 @@ end
 
 function read_config()
   local conf, err = loadfile(config_file)
-  conf()
+  if conf then
+    conf()
+    print("Loaded config")
+  else
+    print("No config present")
+  end
 end
 
 function write_config()

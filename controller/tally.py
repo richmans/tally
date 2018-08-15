@@ -16,29 +16,40 @@ class Tally:
     self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST,1)
     
   def find_nodes(self):
-    message = b"\x01" 
-    dbg("Broadcasting command 1")
-    self.sock.sendto(message, ("<broadcast>", NODE_PORT))
+    brmessage = b"\x01" 
+    dbg("Broadcasting command 1, tries 4")
+    self.sock.sendto(brmessage, ("<broadcast>", NODE_PORT))
     dbg("Waiting for responses")
     self.sock.settimeout(1)
     nodes = []
-    try:
-      while True:
+    tries = 3
+    while True:
+      try:
         message, address= self.sock.recvfrom(1024)
-        
-        if message[0] != 4: 
-          print("Malformed response {}".format(message[0]))
+      except socket.timeout as e:
+        if tries > 0:
+          tries -= 1
+          #dbg("Broadcasting command 1, tries {}".format(tries))
+          self.sock.sendto(brmessage, ("<broadcast>", NODE_PORT))
           continue
-        node_id, channel = message[1:].decode().split(",")
-        node_id = hex(int(node_id))[2:].upper()
-        channel = int(channel)
-        if channel == 255: 
-          dbg("Found node " + node_id + " SENSOR at " + address[0])
-        else:
-          dbg("Found node " + node_id + " on channel " + str(channel) + " at " + address[0])
-        nodes.append((node_id, address[0]))
-    except Exception as e:
-      pass
+        else: 
+          break
+      
+      if message[0] != 4: 
+        print("Malformed response {}".format(message[0]))
+        continue
+      node_id, channel = message[1:].decode().split(",")
+      node_id = hex(int(node_id))[2:].upper()
+      channel = int(channel)
+      
+      if (node_id, address[0]) in nodes:
+        continue
+      if channel == 255: 
+        dbg("Found node " + node_id + " SENSOR at " + address[0])
+      else:
+        dbg("Found node " + node_id + " on channel " + str(channel) + " at " + address[0])
+      nodes.append((node_id, address[0]))
+    
     return nodes
 
   def send_activation(self, channel):

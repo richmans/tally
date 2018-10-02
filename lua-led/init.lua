@@ -3,10 +3,11 @@
 --
 config_file="config.lua"
 channel = 0
-LED_RED=0
-LED_GREEN=1
-LED_BLUE=2
+LED_RED=3 -- d3
+LED_GREEN=2 -- d2
+LED_BLUE=1 -- d1
 LED_OFF = -1
+green_duty=40
 leds = { LED_RED, LED_GREEN, LED_BLUE }
 function init()
   print("Mark423 Tally system starting...")
@@ -22,7 +23,11 @@ end
 
 function init_leds()
   for i,led in ipairs(leds) do
-    gpio.mode(led, gpio.OUTPUT)
+    if led == LED_GREEN then
+        pwm.setup(LED_GREEN, 100, green_duty)
+    else
+        gpio.mode(led, gpio.OUTPUT)
+    end
   end
   set_led_state(LED_BLUE)
 end
@@ -31,7 +36,8 @@ function blink(temp_ledstate)
   old_ledstate = ledstate
   set_led_state(temp_ledstate)
   tmr.create():alarm(2000, tmr.ALARM_SINGLE, function()
-    if ledstate == old_ledstate then
+    print(string.format("Resetting ledstate to %d", old_ledstate))
+    if ledstate ~= old_ledstate then
       set_led_state(old_ledstate)
     end
   end)
@@ -41,9 +47,17 @@ function set_led_state(new_led_state)
   ledstate = new_led_state
   for i,led in ipairs(leds) do
     if led == ledstate then
-      gpio.write(led, gpio.HIGH)
+      if led == LED_GREEN then
+        pwm.start(LED_GREEN)
+      else 
+        gpio.write(led, gpio.HIGH)
+      end
     else
-      gpio.write(led, gpio.LOW)
+      if led == LED_GREEN then
+        pwm.stop(LED_GREEN)
+      else 
+        gpio.write(led, gpio.LOW)
+      end
     end
   end
 end

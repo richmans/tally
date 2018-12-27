@@ -2,21 +2,22 @@ import argparse
 import socket
 import struct
 import traceback
+import re
 NODE_PORT=5004
 def dbg(msg):
   print(msg)
-  
+
 class TallyNode:
   def __init__(self, ip):
     pass
 
 class Tally:
   def __init__(self):
-    self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) 
+    self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST,1)
-    
+
   def find_nodes(self):
-    brmessage = b"\x01" 
+    brmessage = b"\x01"
     dbg("Broadcasting command 1, tries 4")
     self.sock.sendto(brmessage, ("<broadcast>", NODE_PORT))
     dbg("Waiting for responses")
@@ -32,24 +33,24 @@ class Tally:
           #dbg("Broadcasting command 1, tries {}".format(tries))
           self.sock.sendto(brmessage, ("<broadcast>", NODE_PORT))
           continue
-        else: 
+        else:
           break
-      
-      if message[0] != 4: 
+
+      if message[0] != 4:
         print("Malformed response {}".format(message[0]))
         continue
       node_id, channel = message[1:].decode().split(",")
       node_id = hex(int(node_id))[2:].upper()
       channel = int(channel)
-      
+
       if (node_id, address[0]) in nodes:
         continue
-      if channel == 255: 
+      if channel == 255:
         dbg("Found node " + node_id + " SENSOR at " + address[0])
       else:
         dbg("Found node " + node_id + " on channel " + str(channel) + " at " + address[0])
       nodes.append((node_id, address[0]))
-    
+
     return nodes
 
   def send_activation(self, channel):
@@ -64,12 +65,23 @@ class Tally:
       if (2**i) & chanstate > 0:
         chans.append(i)
     return chans
-  
+
   def set_channel(self, node, channel):
     message = "\x03{},{}".format(node, channel)
     dbg("Broadcasting command 3")
     self.sock.sendto(message.encode(), ("<broadcast>", NODE_PORT))
-    
+
+  def set_duty(self, node, duties_str):
+    duties = duties_str.split(",")
+    if len(duties) != 3:
+        print("Please provide duty cycles in the following format: 255,255,255")
+        return
+    duties = [int(c) for c in duties]
+    duties = bytes(duties)
+    message = "\x04{}".format(node).encode() +  duties
+    dbg("Broadcasting command 4")
+    self.sock.sendto(message, ("<broadcast>", NODE_PORT))
+
   def listen(self):
     self.sock.bind(("0.0.0.0", NODE_PORT))
     while True:
@@ -102,6 +114,9 @@ if __name__ == "__main__":
   channel_parser = subparsers.add_parser("channel")
   channel_parser.add_argument('-c', type=int, required=True)
   channel_parser.add_argument('-n', type=str, required=True)
+  duty_parser = subparsers.add_parser("duty")
+  duty_parser.add_argument('-n', type=str, required=True)
+  duty_parser.add_argument('-d', type=str, required=True)
   args = parser.parse_args()
   t = Tally()
   if args.command == "find":
@@ -112,5 +127,7 @@ if __name__ == "__main__":
     t.listen()
   elif args.command == "channel":
     t.set_channel(args.n, args.c)
+  elif args.command == "duty":
+    t.set_duty(args.n, args.d)
   else:
     parser.print_usage()

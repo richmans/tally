@@ -7,7 +7,10 @@ LED_RED=3 -- d3
 LED_GREEN=2 -- d2
 LED_BLUE=1 -- d1
 LED_OFF = -1
-green_duty=40
+
+-- duty cycle for blue, green, red
+duties = { 40, 40, 40 }
+
 leds = { LED_RED, LED_GREEN, LED_BLUE }
 function init()
   print("Mark423 Tally system starting...")
@@ -18,18 +21,15 @@ function init()
   m423_running = true
   read_config()
   init_leds()
+  set_led_state(LED_BLUE)
   wifi_setup()
 end
 
 function init_leds()
   for i,led in ipairs(leds) do
-    if led == LED_GREEN then
-        pwm.setup(LED_GREEN, 100, green_duty)
-    else
-        gpio.mode(led, gpio.OUTPUT)
-    end
+    print(duties[led])
+    pwm.setup(led, 100, duties[led])
   end
-  set_led_state(LED_BLUE)
 end
 
 function blink(temp_ledstate)
@@ -47,17 +47,9 @@ function set_led_state(new_led_state)
   ledstate = new_led_state
   for i,led in ipairs(leds) do
     if led == ledstate then
-      if led == LED_GREEN then
-        pwm.start(LED_GREEN)
-      else 
-        gpio.write(led, gpio.HIGH)
-      end
+      pwm.start(led)
     else
-      if led == LED_GREEN then
-        pwm.stop(LED_GREEN)
-      else 
-        gpio.write(led, gpio.LOW)
-      end
+      pwm.stop(led)
     end
   end
 end
@@ -115,6 +107,18 @@ function parse_packet(s, data, port, ip)
       write_config()
       blink(LED_BLUE)
     end
+  elseif command == 4 then
+    print("Command 4")
+    if node.chipid() == tonumber(string.sub(data,2,7),16) then
+      for i,led in ipairs(leds) do
+        duty = string.byte(data, i+7)
+        print(duty)
+        duties[led] = duty * 4
+      end
+      write_config()
+      init_leds()
+      blink(LED_BLUE)
+    end
   end
 end
 
@@ -131,6 +135,9 @@ end
 function write_config()
   file.open(config_file, "w")
   file.write(string.format("channel=%d", channel))
+  file.write(string.format("duties[1]=%d", duties[1]))
+  file.write(string.format("duties[2]=%d", duties[2]))
+  file.write(string.format("duties[3]=%d", duties[3]))
   file.close()
 end
 init()

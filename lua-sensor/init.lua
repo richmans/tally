@@ -7,14 +7,10 @@ config_file="config.lua"
 -- i messed up the pin wirings, the pinmap is adjusted to map each pin to the right
 -- channel
 pinmap = {}
-pinmap[1]=4  --d1
-pinmap[2]=5   --d2
-pinmap[3]=7   --d3
-pinmap[4]=6   --d4
 pinmap[5]=0  --d5
 pinmap[6]=1  --d6
 pinmap[7]=2  --d7
-pinmap[8]=3  --d8
+pinmap[1]=3  --d1
 
 pinstate = 0
 ready = false
@@ -65,6 +61,7 @@ end
 
 function input_trigger(pin, level, when)
   local channel = pinmap[pin]
+  print(pin .. "TRIG")
   if not ready then return end
   -- following is needed for debouncing a switch
   -- don't know if it will be needed in the real app

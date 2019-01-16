@@ -134,10 +134,10 @@ end
 
 function write_config()
   file.open(config_file, "w")
-  file.write(string.format("channel=%d", channel))
-  file.write(string.format("duties[1]=%d", duties[1]))
-  file.write(string.format("duties[2]=%d", duties[2]))
-  file.write(string.format("duties[3]=%d", duties[3]))
+  file.write(string.format("channel=%d\n", channel))
+  file.write(string.format("duties[1]=%d\n", duties[1]))
+  file.write(string.format("duties[2]=%d\n", duties[2]))
+  file.write(string.format("duties[3]=%d\n", duties[3]))
   file.close()
 end
 init()

@@ -18,4 +18,4 @@ while True:
         if i < 1:
             up = True
     t.send_activation(i)
-    sleep(0.2)
+    sleep(0.8)
